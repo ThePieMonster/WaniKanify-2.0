@@ -9,7 +9,7 @@ function executeScripts(tab) {
             function isBlackListed(details, items) {
                 var url = details.url;
                 var blackList = items.wanikanify_blackList;
-                blackList.push("chrome://");
+                blackList.push("chrome://","chrome-extension://");
                 if (blackList) {
                     if (blackList.length == 0) {
                         return false;
