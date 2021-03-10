@@ -7,17 +7,17 @@
          "19": "images/icon-19.png",
          "38": "images/icon-38.png"
       },
-      "default_title": "WaniKanify",
-      "name": "WaniKanify"
+      "default_title": "WaniKanify 2.0",
+      "name": "WaniKanify 2.0"
    },
-   "description": "A tool for reinforcing your WaniKani vocabulary",
+   "description": "A tool for reinforcing your WaniKani vocabulary.",
    "icons": {
       "128": "images/icon-128.png",
       "16": "images/icon-16.png",
       "48": "images/icon-48.png"
    },
    "manifest_version": 2,
-   "name": "WaniKanify",
+   "name": "WaniKanify 2.0",
    "options_page": "options.html",
    "permissions": [ "tabs", "storage", "contextMenus", "http://*/*", "https://*/*" ],
    "update_url": "http://clients2.google.com/service/update2/crx",
