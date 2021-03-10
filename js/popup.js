@@ -10,7 +10,8 @@ function save_popup() {
     var defaultOptions = {
         "wanikanify_apiKey": apiKey,
         "wanikanify_runOn": "onClick",
-        "wanikanify_srs": ["apprentice", "guru", "master", "enlighten"]
+        "wanikanify_srs": ["apprentice", "guru", "master", "enlighten"],
+        "wanikanify_removeNumbers": "Yes"
     }
     chrome.storage.sync.set(defaultOptions, function() {
         chrome.browserAction.setPopup({popup:""});

@@ -1,11 +1,12 @@
 // cache keys
-var VOCAB_KEY      = "wanikanify_vocab";
-var SRS_KEY        = "wanikanify_srs";
-var API_KEY        = "wanikanify_apiKey";
-var CUST_VOCAB_KEY = "wanikanify_customvocab";
-var GOOG_VOCAB_KEY = "wanikanify_googleVocabKey";
-var GOOG_VOCAB_META_KEY = "wanikanify_googleVocab_meta";
-var AUDIO_KEY      = "wanikanify_audio";
+var VOCAB_KEY            = "wanikanify_vocab";
+var SRS_KEY              = "wanikanify_srs";
+var API_KEY              = "wanikanify_apiKey";
+var CUST_VOCAB_KEY       = "wanikanify_customvocab";
+var GOOG_VOCAB_KEY       = "wanikanify_googleVocabKey";
+var GOOG_VOCAB_META_KEY  = "wanikanify_googleVocab_meta";
+var AUDIO_KEY            = "wanikanify_audio";
+var REMOVENUMBERS_KEY    = "wanikanify_removeNumbers";
 
 // filter map
 var FILTER_MAP = {
@@ -20,7 +21,7 @@ var FILTER_MAP = {
 // The main program driver.
 // main : Object ->
 function main(cache_local) {
-    chrome.storage.sync.get([API_KEY, SRS_KEY, CUST_VOCAB_KEY, GOOG_VOCAB_META_KEY, AUDIO_KEY], async function(cache_sync) {
+    chrome.storage.sync.get([API_KEY, SRS_KEY, CUST_VOCAB_KEY, GOOG_VOCAB_META_KEY, AUDIO_KEY, REMOVENUMBERS_KEY], async function(cache_sync) {
         var apiKey = cache_sync[API_KEY];
         if (!apiKey) {
             console.error("No API key provided! Please use the options page to specify your API key.");
@@ -32,6 +33,9 @@ function main(cache_local) {
         console.log("Total entries after Google Spreadsheets: " + Object.keys(vocabDictionary).length);
         importCustomVocab(vocabDictionary, cache_local, cache_sync);
         console.log("Total entries after CustomVocab: " + Object.keys(vocabDictionary).length);
+        vocabDictionary = numberRemoval(vocabDictionary, cache_local, cache_sync);
+        console.log("Total entries after NumberRemoval: " + Object.keys(vocabDictionary).length);
+
         var dictionaryCallback = buildDictionaryCallback(
             cache_local,
             cache_sync,
@@ -42,6 +46,14 @@ function main(cache_local) {
 
         $("body *:not(noscript):not(script):not(style)").replaceText(/\b(\S+?)\b/g, dictionaryCallback);
     });
+}
+
+
+// ------------------------------------------------------------------------------------------------
+// Helper Functions
+
+function hasWhiteSpace(s) {
+    return s.indexOf(' ') >= 0;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -70,6 +82,7 @@ function importCustomVocab(vocabDictionary, cache_local, cache_sync) {
 
     // Explode entire list into sets of englishwords and japanese combinations.
     var splitList = customVocab.split(ENTRY_DELIM);
+    
     if (!splitList) {
         return;
     }
@@ -98,6 +111,50 @@ function importCustomVocab(vocabDictionary, cache_local, cache_sync) {
             }
         }
     }
+}
+
+// ------------------------------------------------------------------------------------------------
+// Remove numbers from dictionary
+function numberRemoval(vocabDictionary, cache_local, cache_sync) {
+    var removeNumbers_settings = cache_sync[REMOVENUMBERS_KEY];
+    if(removeNumbers_settings == "No") {
+        return vocabDictionary;
+    }
+
+    var Nadd = 0;
+    var Yadd = 0;
+    var newVocabDictionary = {};
+    vocabDictionary = Object.entries(vocabDictionary);
+    //console.log(Object.entries(vocabDictionary));
+
+    for (var i = 0; i < vocabDictionary.length; ++i) {
+        var temp = null;
+        var key = Object.keys(vocabDictionary)[i];
+        var valueEng = Object.values(vocabDictionary)[i][0];
+        var valueJap = Object.values(vocabDictionary)[i][1];
+        //console.log( valueEng + " " + valueJap );
+
+        try {
+            if(!hasWhiteSpace(valueEng)) {
+                temp = parseInt(valueEng);
+                
+                if(Number.isFinite(temp)) {
+                    //console.log("N-Add: " + valueEng);
+                    Nadd++;
+                } else {
+                    //console.log("Y-Add: " + valueEng);
+                    Yadd++;
+                    newVocabDictionary[valueEng] = valueJap;
+                }
+            }
+        } catch(error) { 
+            console.log(error);
+        }
+    }
+
+    //console.log(Object.entries(newVocabDictionary));
+    console.log("  - Numbers removed " + Nadd + " and items left untouched " + Yadd);
+    return newVocabDictionary;
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -204,7 +261,7 @@ async function tryWaniKani(apiKey) {
                 console.error(error.message);
                 reject(error);
             } else {
-                console.log(vocabList);
+                //console.log(vocabList);
                 resolve(vocabList);
             }
         });
@@ -363,6 +420,7 @@ function buildDictionaryCallback(
     if (wanikani_vocab_list) {
         wk_vocab_list = wanikani_vocab_list.vocabList;
     }
+
     var gc = {};
     if (google_collections) {
         gc = google_collections.collections;

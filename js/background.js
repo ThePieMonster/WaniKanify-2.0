@@ -9,6 +9,7 @@ function executeScripts(tab) {
             function isBlackListed(details, items) {
                 var url = details.url;
                 var blackList = items.wanikanify_blackList;
+                blackList.push("chrome://");
                 if (blackList) {
                     if (blackList.length == 0) {
                         return false;
@@ -30,7 +31,7 @@ function executeScripts(tab) {
                     });
                 });
             } else {
-                console.log("Blacklisted");
+                console.log("WaniKanify blacklisted on this site!");
             }
         });
     });
@@ -182,7 +183,8 @@ chrome.storage.sync.get(["wanikanify_runOn","wanikanify_apiKey"], function(items
     } else {
         context.title = "Enable autoload";
     }
-    chrome.contextMenus.create(context);
+    // Display AutoLoad Right Click Options Menu
+    //chrome.contextMenus.create(context);
 
     if (!items.wanikanify_apiKey) {
         chrome.browserAction.setPopup({popup:"popup.html"});

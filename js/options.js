@@ -539,6 +539,9 @@ function save_options() {
     audio_settings["clicked"] = (audio_click)?true:false;
     chrome.storage.sync.set({"wanikanify_audio":audio_settings});
 
+    var removeNumbers = $('input:radio[name=removeNumbers]:checked').val();
+    chrome.storage.sync.set({"wanikanify_removeNumbers":removeNumbers});
+
     var blackList = $('#blackListTable input').map(function() {
         return $(this).val();
     }).filter(function(index, value) {
@@ -567,6 +570,7 @@ function restore_options() {
         "wanikanify_runOn",
         "wanikanify_audio",
         "wanikanify_srs",
+        "wanikanify_removeNumbers",
         "wanikanify_blackList",
         "wanikanify_customvocab",
         "wanikanify_googleVocab_meta"],
@@ -604,6 +608,13 @@ function restore_options() {
                 } else {
                     $('#audio_on_hover').click();
                 }
+            }
+            
+            var removeNumbers = items.wanikanify_removeNumbers;
+            if (removeNumbers == "Yes") {
+                $('#removeNumbersYes').click();
+            } else {
+                $('#removeNumbersNo').click();
             }
 
             var blackList = items.wanikanify_blackList;
