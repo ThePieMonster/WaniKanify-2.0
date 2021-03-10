@@ -3,7 +3,54 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+# Custom
+[Cc]ache
+administrator/**
+!administrator/components/
+!administrator/components/com_igallery/
+!administrator/components/com_igallery/*
+!administrator/components/com_igallery/*/*
+!administrator/components/com_igallery/*/*/*
+!administrator/components/com_igallery/*/*/*/*
+!administrator/components/com_igallery/*/*/*/*/*
+bin/*
+cli/*
+components/*
+!components/com_igallery/
+!components/com_igallery/*
+!components/com_igallery/*/*
+!components/com_igallery/*/*/*
+images/*
+includes/*
+jaextmanager_data/*
+language/*
+layouts/*
+libraries/*
+media/*
+!media/com_igallery/
+!media/com_igallery/*
+!media/com_igallery/*/*
+!media/com_igallery/*/*/*
+modules/*
+plugins/*
+templates/*
+tmp/*
+configuration.php
+htaccess.txt
+htaccess
+index.php
+LICENSE.txt
+README.txt
+robots.txt
+web.config.txt
+web.config
+*.jpa
+
+
+
+
 # User-specific files
+.vscode/*
 *.rsuser
 *.suo
 *.user
