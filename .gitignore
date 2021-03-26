@@ -20,7 +20,7 @@ components/*
 !components/com_igallery/*
 !components/com_igallery/*/*
 !components/com_igallery/*/*/*
-images/*
+#images/*
 includes/*
 jaextmanager_data/*
 language/*
