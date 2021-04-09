@@ -1,3 +1,5 @@
+
+
 var executed = {}
 
 // Injects JS into the tab.
@@ -89,12 +91,22 @@ async function getApiKey() {
 }
 
 async function repeatPaginatedRequest(url, apiKey) {
-    const headers = { Authorization: `Bearer ${apiKey}` };
-    const response = await fetch(url, { headers });
+    const headers = {Authorization: `Bearer ${apiKey}`};
+    const response = await fetch(url, {headers});
     const json = await response.json();
 
     let result = json.data;
-    if (json.pages.next_url) result = result.concat(await repeatPaginatedRequest(json.pages.next_url, apiKey));
+    if (json.pages.next_url) {
+        const question_mark = json.pages.next_url.indexOf('?ids');
+        let resulting_url = json.pages.next_url
+        if (question_mark != -1) {
+            const gibberish_end = resulting_url.indexOf('&');
+            const first_half = resulting_url.substring(0, question_mark + 1);
+            const second_half = resulting_url.substring(gibberish_end)
+            resulting_url = first_half + second_half
+        }
+        result = result.concat(await repeatPaginatedRequest(resulting_url, apiKey));
+    }
 
     return result;
 }
@@ -102,7 +114,6 @@ async function repeatPaginatedRequest(url, apiKey) {
 async function getVocabListFromWaniKani(apiKey) {
     // Request all user vocabulary assignments: https://docs.api.wanikani.com/20170710/#get-all-assignments
     const assignments = await repeatPaginatedRequest('https://api.wanikani.com/v2/assignments?subject_types=vocabulary', apiKey);
-
     // Request all study materials to find out about meaning synonyms: https://docs.api.wanikani.com/20170710/#study-materials
     const studyMaterials = await repeatPaginatedRequest('https://api.wanikani.com/v2/study_materials?subject_types=vocabulary', apiKey);
 
@@ -118,6 +129,7 @@ async function getVocabListFromWaniKani(apiKey) {
     }, {});
 
     // Request all vocabulary subjects the user has already learned: https://docs.api.wanikani.com/20170710/#get-all-subjects
+    console.log('subjects')
     const subjectIdList = Object.keys(progress).join(',');
     const subjects = await repeatPaginatedRequest(`https://api.wanikani.com/v2/subjects?types=vocabulary&ids=${subjectIdList}`, apiKey);
     
@@ -127,7 +139,6 @@ async function getVocabListFromWaniKani(apiKey) {
         return subject;
     });
 }
-
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
         if (request.type === 'fetchVocab') {
