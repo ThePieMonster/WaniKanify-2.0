@@ -129,7 +129,6 @@ async function getVocabListFromWaniKani(apiKey) {
     }, {});
 
     // Request all vocabulary subjects the user has already learned: https://docs.api.wanikani.com/20170710/#get-all-subjects
-    console.log('subjects')
     const subjectIdList = Object.keys(progress).join(',');
     const subjects = await repeatPaginatedRequest(`https://api.wanikani.com/v2/subjects?types=vocabulary&ids=${subjectIdList}`, apiKey);
     
