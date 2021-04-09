@@ -1,5 +1,3 @@
-
-
 var executed = {}
 
 // Injects JS into the tab.
@@ -131,7 +129,7 @@ async function getVocabListFromWaniKani(apiKey) {
     // Request all vocabulary subjects the user has already learned: https://docs.api.wanikani.com/20170710/#get-all-subjects
     const subjectIdList = Object.keys(progress).join(',');
     const subjects = await repeatPaginatedRequest(`https://api.wanikani.com/v2/subjects?types=vocabulary&ids=${subjectIdList}`, apiKey);
-    
+
     // Augment the subjects by adding the user's current SRS progress
     return subjects.map((subject) => {
         subject.data = { ...subject.data, ...progress[subject.id] };
