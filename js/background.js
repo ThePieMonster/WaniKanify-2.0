@@ -157,8 +157,18 @@ async function getVocabListFromWaniKani(apiKey) {
     }, {});
 
     // Request all vocabulary subjects the user has already learned: https://docs.api.wanikani.com/20170710/#get-all-subjects
-    const subjectIdList = Object.keys(progress).join(',');
-    const subjects = await repeatPaginatedRequest(`https://api.wanikani.com/v2/subjects?types=vocabulary&ids=${subjectIdList}`, apiKey);
+    let subjectIdList = Object.keys(progress).map(x => +x);
+
+    // manually paginate to keep the query string small (the Ids parameter will otherwise cause issues if it gets too long)
+    // avoid wanikani pagination (batchSize 1000)
+    const batchSize = 999;
+    let batch = [];
+    let subjects = [];
+    do {
+        batch = subjectIdList.slice(0, batchSize);
+        subjectIdList = subjectIdList.slice(batchSize);
+        subjects = subjects.concat(await repeatPaginatedRequest(`https://api.wanikani.com/v2/subjects?types=vocabulary&ids=${batch.join(',')}`, apiKey));
+    } while (batch.length > 0)
 
     // Augment the subjects by adding the user's current SRS progress
     return subjects.map((subject) => {
