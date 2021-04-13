@@ -88,22 +88,52 @@ async function getApiKey() {
     });
 }
 
+async function testWaniKaniApi(apiKey) {
+    const headers = {Authorization: `Bearer ${apiKey}`};
+    const response = await fetch('https://api.wanikani.com/v2/' + 'user', {headers});
+    const json = await response.json();
+    
+    let result = json.data;
+    if(json.pages == null) {
+        console.log("Test: No json page data returned from api");
+    } else {
+        if (json.pages.next_url) {
+            const question_mark = json.pages.next_url.indexOf('?ids');
+            let resulting_url = json.pages.next_url
+            if (question_mark != -1) {
+                const gibberish_end = resulting_url.indexOf('&');
+                const first_half = resulting_url.substring(0, question_mark + 1);
+                const second_half = resulting_url.substring(gibberish_end)
+                resulting_url = first_half + second_half
+            }
+            result = result.concat(await repeatPaginatedRequest(resulting_url, apiKey));
+        }
+    }
+
+    console.log("testWaniKaniApi function completed");
+    return result;
+}
+
 async function repeatPaginatedRequest(url, apiKey) {
     const headers = {Authorization: `Bearer ${apiKey}`};
     const response = await fetch(url, {headers});
     const json = await response.json();
 
     let result = json.data;
-    if (json.pages.next_url) {
-        const question_mark = json.pages.next_url.indexOf('?ids');
-        let resulting_url = json.pages.next_url
-        if (question_mark != -1) {
-            const gibberish_end = resulting_url.indexOf('&');
-            const first_half = resulting_url.substring(0, question_mark + 1);
-            const second_half = resulting_url.substring(gibberish_end)
-            resulting_url = first_half + second_half
+    if(json.pages == null) {
+        console.log("No json page data returned from api");
+    } else {
+        if (json.pages.next_url) {
+            const question_mark = json.pages.next_url.indexOf('?ids');
+            let resulting_url = json.pages.next_url
+            if (question_mark != -1) {
+                const gibberish_end = resulting_url.indexOf('&');
+                const first_half = resulting_url.substring(0, question_mark + 1);
+                const second_half = resulting_url.substring(gibberish_end)
+                resulting_url = first_half + second_half
+            }
+            result = result.concat(await repeatPaginatedRequest(resulting_url, apiKey));
         }
-        result = result.concat(await repeatPaginatedRequest(resulting_url, apiKey));
     }
 
     return result;
@@ -136,11 +166,19 @@ async function getVocabListFromWaniKani(apiKey) {
         return subject;
     });
 }
+
 chrome.runtime.onMessage.addListener(
     function(request, sender, sendResponse) {
-        if (request.type === 'fetchVocab') {
+        if (request.type === "fetchVocab") {
             getApiKey()
                 .then(getVocabListFromWaniKani)
+                .then(sendResponse);
+            return true;
+        }
+        if (request.type === "fetchUserObject") {
+            console.log("Message \"testWkApi\" recieved");
+            getApiKey()
+                .then(testWaniKaniApi)
                 .then(sendResponse);
             return true;
         }
