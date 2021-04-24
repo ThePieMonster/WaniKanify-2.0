@@ -253,21 +253,6 @@ async function tryWaniKani(apiKey) {
         console.error("No API key provided! Please use the options page to specify your API key.");
         return [];
     }
-    
-    var userPromise = new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({ type: "fetchUserObject" }, (userObject) => {
-            const error = chrome.runtime.lastError;
-            if (error) {
-                console.error(error.message);
-                reject(error);
-            } else {
-                resolve(userObject);
-            }
-        });
-    });
-
-    var username = await userPromise.then(result => result.username);
-    console.log("WaniKani Username: " + username);
 
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({ type: "fetchVocab" }, (vocabList) => {
