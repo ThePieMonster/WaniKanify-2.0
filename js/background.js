@@ -139,7 +139,34 @@ async function repeatPaginatedRequest(url, apiKey) {
     return result;
 }
 
+async function getCachedVocab() {
+    return await new Promise((resolve, reject) => {
+        chrome.storage.local.get(["cachedWaniKaniVocab", "cacheCreationDate"], (cachedData) => {
+            // check if data is no older than an hour (could be made configurable later, if there is demand for it)
+            if (cachedData?.cachedWaniKaniVocab && (new Date() - cachedData.cacheCreationDate ) < 60 * 60 * 1000){
+                resolve(cachedData.cachedWaniKaniVocab);
+            }
+            resolve(null);
+        });
+    });
+}
+
+async function setCachedVocab(subjects) {
+    return await new Promise((resolve, reject) => {
+        chrome.storage.local.set({ cachedWaniKaniVocab: subjects, cacheCreationDate: Date.now()});
+    });
+}
+
 async function getVocabListFromWaniKani(apiKey) {
+
+    // try to load vocab from cache
+    const cache = await getCachedVocab();
+
+    if (cache)
+    {
+        return cache;
+    }
+
     // Request all user vocabulary assignments: https://docs.api.wanikani.com/20170710/#get-all-assignments
     const assignments = await repeatPaginatedRequest('https://api.wanikani.com/v2/assignments?subject_types=vocabulary', apiKey);
     // Request all study materials to find out about meaning synonyms: https://docs.api.wanikani.com/20170710/#study-materials
@@ -171,10 +198,18 @@ async function getVocabListFromWaniKani(apiKey) {
     } while (batch.length > 0)
 
     // Augment the subjects by adding the user's current SRS progress
-    return subjects.map((subject) => {
+    subjects = subjects.map((subject) => {
         subject.data = { ...subject.data, ...progress[subject.id] };
         return subject;
     });
+
+    //trim out unnecessary data, like mnemonics and such (otherwise 5MB wont be enough to cache it and the unlimited Storage permission will be required)
+    subjects = subjects.map(x => ( {data: { auxiliary_meanings: x.data.auxiliary_meanings, characters: x.data.characters, meanings: x.data.meanings, synonyms: x.data.synonyms, srs_stage: x.data.srs_stage}} ))
+
+    // cache waniKani vocab
+    setCachedVocab(subjects);
+
+    return subjects;
 }
 
 chrome.runtime.onMessage.addListener(

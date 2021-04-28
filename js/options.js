@@ -645,6 +645,22 @@ function restore_options() {
     );
 }
 
+async function test_api_key() {
+    var userPromise = new Promise((resolve, reject) => {
+        chrome.runtime.sendMessage({ type: "fetchUserObject" }, (userObject) => {
+            const error = chrome.runtime.lastError;
+            if (error) {
+                console.error(error.message);
+                reject(error);
+            } else {
+                resolve(userObject);
+            }
+        });
+    });
+
+    var username = await userPromise.then(result => result?.username);
+    alert(username ? `Successfully connected with username ${username}` : `Failed to connect to waniKani, the APIKey is most likely invalid (remember to press Save at the bottom of the page after changing the key)`);
+}
 // ------------------------------------------------------------------------------------------------
 function clear_cache() {
     console.log("clear_cache()");
@@ -669,4 +685,5 @@ document.addEventListener('DOMContentLoaded', function() {
     $('#clearCache').click(clear_cache);
     $('#addBlackListItem').click(add_black_list_item);
     $('#addGoogleSpreadSheetListItem').click(add_empty_google_spread_sheet_list_item);
+    $('#testApiKey').click(test_api_key);
 });

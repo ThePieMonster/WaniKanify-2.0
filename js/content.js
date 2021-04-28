@@ -42,7 +42,8 @@ function main(cache_local) {
             vocabDictionary,
             cache_local.wanikanify_vocab,
             cache_local.wanikanify_googleVocabKey,
-            cache_sync.wanikanify_customvocab);
+            cache_sync.wanikanify_customvocab
+        );
 
         $("body *:not(noscript):not(script):not(style)").replaceText(/\b(\S+?)\b/g, dictionaryCallback);
     });
@@ -113,6 +114,12 @@ function importCustomVocab(vocabDictionary, cache_local, cache_sync) {
     }
 }
 
+// this will not catch numbers with delimeters other than "." (like for example "1,000")
+    function isNumeric(str) { 
+        return !isNaN(str) &&
+            !isNaN(parseFloat(str))
+    }
+
 // ------------------------------------------------------------------------------------------------
 // Remove numbers from dictionary
 function numberRemoval(vocabDictionary, cache_local, cache_sync) {
@@ -121,40 +128,9 @@ function numberRemoval(vocabDictionary, cache_local, cache_sync) {
         return vocabDictionary;
     }
 
-    var Nadd = 0;
-    var Yadd = 0;
-    var newVocabDictionary = {};
-    vocabDictionary = Object.entries(vocabDictionary);
-    //console.log(Object.entries(vocabDictionary));
-
-    for (var i = 0; i < vocabDictionary.length; ++i) {
-        var temp = null;
-        var key = Object.keys(vocabDictionary)[i];
-        var valueEng = Object.values(vocabDictionary)[i][0];
-        var valueJap = Object.values(vocabDictionary)[i][1];
-        //console.log( valueEng + " " + valueJap );
-
-        try {
-            if(!hasWhiteSpace(valueEng)) {
-                temp = parseInt(valueEng);
-                
-                if(Number.isFinite(temp)) {
-                    //console.log("N-Add: " + valueEng);
-                    Nadd++;
-                } else {
-                    //console.log("Y-Add: " + valueEng);
-                    Yadd++;
-                    newVocabDictionary[valueEng] = valueJap;
-                }
-            }
-        } catch(error) { 
-            console.log(error);
-        }
-    }
-
-    //console.log(Object.entries(newVocabDictionary));
-    console.log("  - Numbers removed " + Nadd + " and items left untouched " + Yadd);
-    return newVocabDictionary;
+    return  Object.fromEntries(
+        Object.entries(vocabDictionary).filter(x => !isNumeric(x[0]))
+        );
 }
 
 // ------------------------------------------------------------------------------------------------
@@ -253,21 +229,6 @@ async function tryWaniKani(apiKey) {
         console.error("No API key provided! Please use the options page to specify your API key.");
         return [];
     }
-    
-    var userPromise = new Promise((resolve, reject) => {
-        chrome.runtime.sendMessage({ type: "fetchUserObject" }, (userObject) => {
-            const error = chrome.runtime.lastError;
-            if (error) {
-                console.error(error.message);
-                reject(error);
-            } else {
-                resolve(userObject);
-            }
-        });
-    });
-
-    var username = await userPromise.then(result => result.username);
-    console.log("WaniKani Username: " + username);
 
     return new Promise((resolve, reject) => {
         chrome.runtime.sendMessage({ type: "fetchVocab" }, (vocabList) => {
