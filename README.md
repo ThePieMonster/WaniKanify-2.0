@@ -19,6 +19,7 @@ View the WaniKani Comminity thread on this extension [here](https://community.wa
 
 You can download the [Chrome Extension](https://chrome.google.com/webstore/detail/wanikanify-20/mgnblnbdmneollbncamkogcpgpjgekpf) by visiting the Chrome Web store.
 
+Please view the following in regards to the [project license](https://github.com/ThePieMonster/WaniKanify-2.0/issues/10).
 
 ## Features
 ### Importing Google Spreadsheet Data
