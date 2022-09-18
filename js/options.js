@@ -1,6 +1,6 @@
 // An object that contains a dictionary of sheet collections.
 // Each sheet collection contains a dictionary of sheets.
-// Each sheet is an array 
+// Each sheet is an array
 var allImportedVocabDictionaries = {};
 
 // ------------------------------------------------------------------------------------------------
@@ -58,7 +58,7 @@ function update_import_count(spreadsheet_collection_key, sheet_name, count) {
 // Handler for when data has been grabbed from the Google Spreadsheet API. Called from tabletop.
 function on_google_import(data, tabletop) {
     console.log("on_google_import()");
-    
+
     // The data failed to import properly.
     if (!data) {
         $( "#google_failed_import" ).dialog();
@@ -84,7 +84,7 @@ function on_google_import(data, tabletop) {
             console.log("on_google_import() - No main Google Vocab Metadata object called: " + spreadsheet_collection_key);
             return;
         }
-        
+
         console.log("on_google_import() - Grabbing metadata collection from container.");
         var meta_data_collection = [];
         meta_data_collection = meta_data_container["meta_data_collection"];
@@ -112,7 +112,7 @@ function on_google_import(data, tabletop) {
                 break;
             }
         }
-        
+
         // The data was supposed to be saved out to the metadata cache, but we couldn't
         // find it for some reason. Can't continue.
         if (found == false) {
@@ -192,7 +192,7 @@ function on_click_import_button() {
     var reading_column = row.find("input[name='reading_column']").val().trim();
     var sheet_name     = row.find("input[name='sheet_name']").val().trim();
     console.log("on_click_import_button() - Grabbed data from gui elements.");
-    
+
     // Basic input validation here.
     if (!input_is_valid(spreadsheet_collection_key) ||
         !input_is_valid(from_column) ||
@@ -211,7 +211,7 @@ function on_click_import_button() {
         "reading_column": reading_column,
         "sheet_name": sheet_name
     };
-    
+
     // Tabletop needs the metadata, so we save it so it can access it in the "on_google_import" handler.
     // Save the metadata.
     saveGoogleMetadataEntry(meta_data);
@@ -254,7 +254,7 @@ function on_click_remove_item_button() {
     console.log("on_click_remove_item_button() - Deleting metadata for this entry.");
     // 2) Delete the saved metadata.
     deleteGoogleMetadataEntry(spreadsheet_collection_key, sheet_name);
-    
+
     // 1) Delete the gui elements.
     $(this).closest('tr').unbind().remove();
     console.log("on_click_remove_item_button() - Deleted gui elements.");
@@ -280,7 +280,7 @@ function add_google_spread_sheet_list_item(spreadsheet_collection_key,
     console.log("add_google_spread_sheet_list_item() - " + reading_column);
     console.log("add_google_spread_sheet_list_item() - " + sheet_name);
     console.log("add_google_spread_sheet_list_item() - " + count.toString());
-    
+
     var $googleSpreadSheetListTable = $('#googleSpreadSheetListTable > tbody:last');
     $googleSpreadSheetListTable.append('<tr></tr>');
     // Grab the last row element.
@@ -306,7 +306,7 @@ function add_google_spread_sheet_list_item(spreadsheet_collection_key,
 
     $('.removeGoogleSpreadSheetListItem:last').click(on_click_remove_item_button);
     $('.importGoogleSpreadSheetData:last').click(on_click_import_button);
-    
+
     // Note: If they click the import, remove, or save, the metadata gets saved.
 }
 
@@ -353,7 +353,7 @@ function restoreAllGoogleMetadata(items) {
     console.log("restoreAllGoogleMetadata() - Restoring: " + d.length + " sheets.");
     for (var i = 0; i < d.length; ++i) {
         console.log("restoreAllGoogleMetadata() - Restoring: " + d[i].spreadsheet_collection_key + ", " + d[i].sheet_name);
-        
+
         // It's possible they created the row, but never imported anything. If that's the case,
         // there wouldn't be any data saved out.
         var item_count = 0;
@@ -425,7 +425,7 @@ function deleteGoogleMetadataEntry(spreadsheet_collection_key, sheet_name) {
 function saveGoogleMetadataEntry(meta_data) {
     console.log("saveGoogleMetadataEntry()");
     console.log("saveGoogleMetadataEntry() - Attempting to save: " + meta_data.spreadsheet_collection_key + ", " + meta_data.sheet_name);
-    
+
     // Retrieve the main metadata object from cache.
     chrome.storage.sync.get("wanikanify_googleVocab_meta", function(items) {
         // If the main metadata object doesn't exist yet, create one.
@@ -503,7 +503,7 @@ function saveAllGoogleMetadata() {
             "reading_column": data[i+4],
             "sheet_name": data[i+5],
         };
-        saveGoogleMetadataEntry(meta_data);        
+        saveGoogleMetadataEntry(meta_data);
     }
 }
 
@@ -555,7 +555,7 @@ function save_options() {
     // In this case, we want to save their settings anyways.
     saveAllGoogleMetadata();
     // No need to save the actual imported data, it's already saved if it's imported.
-    
+
     console.log("save_options() - Saving custom vocab.");
     // Save the custom vocab data.
     var customVocab = $("#customVocab").val();
@@ -609,7 +609,7 @@ function restore_options() {
                     $('#audio_on_hover').click();
                 }
             }
-            
+
             var removeNumbers = items.wanikanify_removeNumbers;
             if (removeNumbers == "Yes") {
                 $('#removeNumbersYes').click();
@@ -638,7 +638,7 @@ function restore_options() {
                 console.log("restore_options() - Restoring all google metadata.");
                 restoreAllGoogleMetadata(items);
             });
-            
+
             // TODO: Do extra verification that the imported vocab and the metadata are
             // in sync with each other.
         }
@@ -664,8 +664,10 @@ async function test_api_key() {
 // ------------------------------------------------------------------------------------------------
 function clear_cache() {
     console.log("clear_cache()");
-    chrome.storage.local.remove("wanikanify_vocab");
-  
+    // Remove cached vocab information.
+    chrome.storage.local.remove("cachedWaniKaniVocab");
+    chrome.storage.local.remove("cacheCreationDate");
+
     // Do not clear the Google spreadsheet metadata entries. They can delete those manually.
     // But they'll know if stuff is imported based on the "imported" label that they can see.
     // Clearing the cache will remove all the imported data though.
@@ -673,7 +675,7 @@ function clear_cache() {
     // TODO: Update the "imported" labels.
 
     allImportedVocabDictionaries = {};
-    
+
     console.log("Cache cleared.");
     $(".alert-success").show();
 }
